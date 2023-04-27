@@ -1,32 +1,35 @@
-#include <greeter/greeter.h>
-#include <greeter/version.h>
+#include <chrono>
+#include <loguru.hpp>
+
+#include <dpflow/dpflow.h>
+#include <dpflow/version.h>
+
+#include "net/can/SocketCan.h"
 
 #include <cxxopts.hpp>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 
+#include <sol/sol.hpp>
+
 auto main(int argc, char** argv) -> int {
-  const std::unordered_map<std::string, greeter::LanguageCode> languages{
-      {"en", greeter::LanguageCode::EN},
-      {"de", greeter::LanguageCode::DE},
-      {"es", greeter::LanguageCode::ES},
-      {"fr", greeter::LanguageCode::FR},
-  };
 
   cxxopts::Options options(*argv, "A program to welcome the world!");
 
-  std::string language;
-  std::string name;
+  std::string interface;
 
   // clang-format off
   options.add_options()
     ("h,help", "Show help")
-    ("v,version", "Print the current version number")
-    ("n,name", "Name to greet", cxxopts::value(name)->default_value("World"))
-    ("l,lang", "Language code to use", cxxopts::value(language)->default_value("en"))
+    ("V,version", "Print the current version number")
+    ("v,verbose", "More output", cxxopts::value<bool>()->default_value("false"))
+    ("i,interface", "CAN interface to use", cxxopts::value(interface)->default_value("can0"))
   ;
   // clang-format on
+  //
+
+  //loguru::init(argc, argv);
 
   auto result = options.parse(argc, argv);
 
@@ -36,18 +39,34 @@ auto main(int argc, char** argv) -> int {
   }
 
   if (result["version"].as<bool>()) {
-    std::cout << "Greeter, version " << GREETER_VERSION << std::endl;
+    std::cout << "DPFlow, version " << DPFLOW_VERSION << std::endl;
     return 0;
   }
 
-  auto langIt = languages.find(language);
-  if (langIt == languages.end()) {
-    std::cerr << "unknown language code: " << language << std::endl;
-    return 1;
+  if (result["verbose"].as<bool>()) {
+    loguru::g_stderr_verbosity = 1;
+  } else {
+    loguru::g_stderr_verbosity = 0;
   }
 
-  greeter::Greeter greeter(name);
-  std::cout << greeter.greet(langIt->second) << std::endl;
+  datapanel::net::can::SocketCan can0;
+  int status = can0.open(interface.c_str(), 1000);
+  LOG_F(INFO, "open returned %d", status);
+
+  datapanel::net::can::CanFrame frame;
+  status = can0.recv(frame);
+  LOG_F(INFO, "recv returned %d", status);
+
+  std::cout << std::string(frame) << std::endl;
+
+
+  sol::state lua;
+  int x = 0;
+  lua.set_function("beep", [&x]{++x;});
+  lua.script("beep()");
+
+  std::cout << "X: " << x << std::endl;
+
 
   return 0;
 }
