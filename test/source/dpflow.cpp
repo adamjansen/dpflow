@@ -4,15 +4,17 @@
 
 #include <string>
 
-TEST_CASE("DPFlow") {
-  using namespace dpflow;
+TEST_CASE("DPFlow")
+{
+    using namespace dpflow;
 
-  Greeter greeter("Tests");
+    Greeter greeter("Tests");
 
-  CHECK(greeter.greet() == "Hello, Tests!");
+    CHECK(greeter.greet() == "Hello, Tests!");
 }
 
-TEST_CASE("Greeter version") {
-  static_assert(std::string_view(DPFLOW_VERSION) == std::string_view("1.0"));
-  CHECK(std::string(DPFLOW_VERSION) == std::string("1.0"));
+TEST_CASE("Greeter version")
+{
+    static_assert(std::string_view(DPFLOW_VERSION) == std::string_view("1.0"));
+    CHECK(std::string(DPFLOW_VERSION) == std::string("1.0"));
 }

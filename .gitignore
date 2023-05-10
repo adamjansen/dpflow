@@ -1,4 +1,7 @@
 /build*
 /.vscode
 /cpm_modules
+/.cache/
+/.kdev4/
+dpflow.kdev4
 .DS_Store
