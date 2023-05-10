@@ -1,3 +1,21 @@
+/**
+ * Copyright (c) 2023 Data Panel Corporation
+ * 181 Cheshire Ln, Suite 300
+ * Plymouth, MN 55441
+ * All rights reserved.
+ *
+ * This is the confidential and proprietary information of Data Panel
+ * Corporation. Such confidential information shall not be disclosed and is for
+ * use only in accordance with the license agreement you entered into with Data
+ * Panel.
+ */
+
+/**
+ * @file SocketCanBackend.h
+ * @author ajansen
+ * @date 2023-04-26
+ */
+
 #pragma once
 
 #include "dplib/net/can/CanFrame.h"
@@ -18,6 +36,9 @@ namespace net
 {
 namespace can
 {
+/**
+ * @brief CAN interface using Linux SocketCAN API
+ */
 class SocketCanBackend : public CanInterface
 {
   public:
@@ -37,11 +58,13 @@ class SocketCanBackend : public CanInterface
     static void setup();
 
     static std::list<CanInterfaceInfo> availableChannels();
-  private:
-    bool applyConfigOption(ConfigOption opt, const ConfigOptionValue& value);
 
-    SocketCanBackend(const std::string &channel) : _ifname(channel){
-      _eventLoop = EventLoop::getDefault();
+  private:
+    bool applyConfigOption(ConfigOption opt, const ConfigOptionValue &value);
+
+    SocketCanBackend(const std::string &channel) : _ifname(channel)
+    {
+        _eventLoop = EventLoop::getDefault();
     }
 
     std::string _ifname;
@@ -58,8 +81,6 @@ class SocketCanBackend : public CanInterface
     bool _fdEnabled = false;
 
     std::shared_ptr<EventLoop> _eventLoop = nullptr;
-
-
 };
 
 }  // namespace can

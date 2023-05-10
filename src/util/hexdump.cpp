@@ -2,6 +2,18 @@
 
 #include <fmt/format.h>
 
+/**
+ * @example hexdump.cpp
+ *
+ * This example demonstrates basic usage of hexdump.
+ *
+ * Output:
+ * @code{.txt}
+ * AA BB CC DD
+ * AABBCCDD
+ * AA : BB : CC : DD
+ * @endcode
+ */
 
 std::string datapanel::util::hexdump(const std::vector<std::byte>& data, const std::string& sep) {
     auto out = fmt::memory_buffer();

@@ -1,3 +1,21 @@
+/**
+ * Copyright (c) 2023 Data Panel Corporation
+ * 181 Cheshire Ln, Suite 300
+ * Plymouth, MN 55441
+ * All rights reserved.
+ *
+ * This is the confidential and proprietary information of Data Panel
+ * Corporation. Such confidential information shall not be disclosed and is for
+ * use only in accordance with the license agreement you entered into with Data
+ * Panel.
+ */
+
+/**
+ * @file event_loop.h
+ * @author ajansen
+ * @date 2023-04-26
+ */
+
 #pragma once
 
 #include <condition_variable>
@@ -7,6 +25,9 @@
 #include <vector>
 #include <chrono>
 
+/**
+ * @brief Event Loop
+ */
 class EventLoop
 {
   public:
@@ -27,6 +48,9 @@ class EventLoop
     EventLoop &operator=(const EventLoop &) = delete;
     EventLoop &operator=(EventLoop &&) noexcept = delete;
 
+    /**
+     * @brief Stop the event loop
+     */
     void stop()
     {
         m_running = false;
@@ -35,13 +59,30 @@ class EventLoop
         }
     }
 
-    static std::shared_ptr<EventLoop> getDefault() {
+    /**
+     * Get default event loop
+     *
+     * @return Default event loop
+     */
+    static std::shared_ptr<EventLoop> getDefault()
+    {
         if (_default == nullptr) {
             _default = std::make_shared<EventLoop>();
         }
         return _default;
     }
 
+    /**
+     * @brief Run a function in teh event loop and wait for the result
+     *
+     * Adds a function to be executed in the event loop, and blocks until
+     * the function is complete.
+     *
+     * @param[in] callable Function to call
+     * @param[in] args Arguments to pass to function
+     *
+     * @return value returned from function
+     */
     template <typename Func, typename... Args> auto enqueueSync(Func &&callable, Args &&...args)
     {
         if (std::this_thread::get_id() == m_thread.get_id()) {
@@ -58,6 +99,17 @@ class EventLoop
         return task.get_future().get();
     }
 
+    /**
+     * @brief Add a function to be executed in the event loop
+     *
+     * Adds a function to be executed in the event loop, but
+     * does not wait for the result.
+     *
+     * @param[in] callable Function to call
+     * @param[in] args Arguments to pass to function
+     *
+     * @return the tasks's std::future
+     */
     template <typename Func, typename... Args> [[nodiscard]] auto enqueueAsync(Func &&callable, Args &&...args)
     {
         using return_type = std::invoke_result_t<Func, Args...>;
@@ -70,6 +122,11 @@ class EventLoop
         return task->get_future();
     }
 
+    /**
+     * @brief Execute function in event loop
+     *
+     * @param[in] callable Function to execute
+     */
     void enqueue(callable_t &&callable) noexcept
     {
         {
@@ -79,7 +136,19 @@ class EventLoop
         m_condVar.notify_one();
     }
 
-    bool processEvents(int timeoutMs = 0) {
+    /**
+     * @brief Process all pending events
+     *
+     * All pending events will be processed until the timeout
+     * is reached.  A @p timeout of 0 disables the timeout
+     * and processes events forever.
+     *
+     * @param[in] timeoutMs Maximum time to process events
+     *
+     * @return true if one or more events were handled
+     */
+    bool processEvents(int timeoutMs = 0)
+    {
         bool handled = false;
         std::vector<callable_t> readBuffer;
 
@@ -109,7 +178,6 @@ class EventLoop
     }
 
   private:
-
     std::vector<callable_t> m_writeBuffer;
     std::mutex m_mutex;
     std::condition_variable m_condVar;
@@ -120,8 +188,6 @@ class EventLoop
 
     void threadFunc() noexcept
     {
-        while (m_running) {
-            processEvents();
-        }
+        while (m_running) { processEvents(); }
     }
 };

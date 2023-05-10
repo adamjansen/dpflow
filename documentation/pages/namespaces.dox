@@ -1,0 +1,31 @@
+/**
+@namespace datapanel
+
+@brief Top-level namespace for Data Panel code
+
+The general Data Panel namespace.
+*/
+
+/**
+@namespace datapanel::net
+
+@brief Networking
+
+Networking-related functionality.
+*/
+
+/**
+@namespace datapanel::net::can
+
+@brief CAN
+
+CAN-related functionality
+*/
+
+/**
+@namespace datapanel::util
+
+@brief Utilities
+
+Miscellaneous useful functions.
+*/

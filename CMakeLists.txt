@@ -25,6 +25,8 @@ set(GLOBAL PROPERTY USE_FOLDERS ON)
 # see https://github.com/TheLartians/CPM.cmake for more info
 
 include(cmake/CPM.cmake)
+include(cmake/Doxygen.cmake)
+include(cmake/tools.cmake)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 
@@ -63,3 +65,5 @@ add_subdirectory(src)
 add_subdirectory(apps)
 
 add_subdirectory(test)
+
+add_clang_format_target()
