@@ -21,8 +21,6 @@
 #include "dplib/net/can/CanFrame.h"
 #include "dplib/net/can/CanInterface.h"
 
-#include "dplib/event_loop.h"
-
 #include <spdlog/spdlog.h>
 
 #include <sys/socket.h>
@@ -64,7 +62,6 @@ class SocketCanBackend : public CanInterface
 
     SocketCanBackend(const std::string &channel) : _ifname(channel)
     {
-        _eventLoop = EventLoop::getDefault();
     }
 
     std::string _ifname;
@@ -79,8 +76,6 @@ class SocketCanBackend : public CanInterface
     void readSocket();
 
     bool _fdEnabled = false;
-
-    std::shared_ptr<EventLoop> _eventLoop = nullptr;
 };
 
 }  // namespace can

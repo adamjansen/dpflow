@@ -42,6 +42,8 @@ CPMAddPackage(
   OPTIONS "MAGIC_ENUM_OPT_INSTALL ON"
 )
 
+CPMAddPackage("gh:Megaxela/ByteArray#1775033")
+
 CPMAddPackage(
   NAME libsocketcan
   GIT_REPOSITORY https://git.pengutronix.de/git/tools/libsocketcan
@@ -58,6 +60,10 @@ if (libsocketcan_ADDED)
   )
 endif()
 
+CPMAddPackage(
+  GITHUB_REPOSITORY palacaze/sigslot
+  VERSION 1.2.2
+)
 # ---- Add source files ----
 
 add_subdirectory(src)

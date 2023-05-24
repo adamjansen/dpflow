@@ -41,6 +41,8 @@ void CanInterface::setError(const std::string &errorMessage, CanBusError error)
 {
     _errorMessage = errorMessage;
     _lastError = error;
+
+    errorOccurred(error);
 }
 
 void CanInterface::clearError()
@@ -63,6 +65,8 @@ void CanInterface::enqueueRxFrames(const std::list<CanFrame> &frames)
 {
     std::lock_guard<std::mutex> guard(_rxLock);
     _rxFrames.insert(_rxFrames.end(), frames.begin(), frames.end());
+
+    framesReceived();
 }
 
 void CanInterface::enqueueTxFrame(const CanFrame &frame)
@@ -192,4 +196,5 @@ void CanInterface::setState(CanInterface::CanConnectionState newState)
         return;
 
     _state = newState;
+    connectionStateChanged(newState);
 }

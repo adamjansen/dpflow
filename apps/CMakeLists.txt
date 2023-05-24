@@ -10,4 +10,9 @@ target_compile_features(dpflow PRIVATE cxx_std_17)
 
 target_include_directories(dpflow PRIVATE ${PROJECT_BINARY_DIR})
 
-target_link_libraries(dpflow PRIVATE dplib fmt::fmt cxxopts sol2 magic_enum)
+target_link_libraries(dpflow PRIVATE dplib Pal::Sigslot fmt::fmt cxxopts sol2 magic_enum)
+
+add_executable(dpslot src/dpslot.cpp)
+target_compile_features(dpslot PRIVATE cxx_std_17)
+target_include_directories(dpslot PRIVATE ${PROJECT_BINARY_DIR})
+target_link_libraries(dpslot PRIVATE dplib Pal::Sigslot fmt::fmt cxxopts)

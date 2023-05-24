@@ -28,6 +28,8 @@
 #include <fmt/format.h>
 #include <magic_enum.hpp>
 
+#include <sigslot/signal.hpp>
+
 namespace datapanel
 {
 namespace net
@@ -114,6 +116,11 @@ class CanInterface
         CfgOptFD,       /**< If set, Flexible Data Rate support is enabled */
         CfgOptOther,    /**< Interface-specific option */
     };
+
+    sigslot::signal<CanInterface::CanBusError> errorOccurred;
+    sigslot::signal<CanInterface::CanConnectionState> connectionStateChanged;
+    sigslot::signal<> framesReceived;
+    sigslot::signal<> framesTransmitted;
 
     /**
      * @brief Used with ConfigOption to configure interfaces

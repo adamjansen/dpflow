@@ -2,6 +2,7 @@
 #include <string_view>
 #include <cstring>
 #include <filesystem>
+#include <functional>
 
 #include <fmt/format.h>
 
@@ -9,6 +10,8 @@
 
 #include "dplib/net/can/CanBus.h"
 #include "dplib/net/can/CanInterface.h"
+
+#include "dplib/core/Application.h"
 
 #include <linux/can/error.h>
 #include <linux/can/raw.h>
@@ -25,6 +28,7 @@
 
 #include <libsocketcan.h>
 
+using namespace datapanel::core;
 using namespace datapanel::net::can;
 
 SocketCanBackend::~SocketCanBackend()
@@ -163,7 +167,7 @@ bool SocketCanBackend::applyConfigOption(CanInterface::ConfigOption opt, const C
     return ok;
 }
 
-void SocketCanBackend::setConfigOption(ConfigOption opt, const ConfigOptionValue& value)
+void SocketCanBackend::setConfigOption(ConfigOption opt, const ConfigOptionValue &value)
 {
     if (_socket != -1 && !applyConfigOption(opt, value))
         return;
@@ -298,40 +302,8 @@ bool SocketCanBackend::open()
         }
     }
 
-    _eventLoop->enqueue([&]
-    {
-        struct epoll_event event;
-        int epoll_fd = ::epoll_create1(0);
-        if (epoll_fd == -1)
-        {
-            spdlog::error("epoll failed: {}", ::strerror(errno));
-            return;
-        }
-
-        event.events = EPOLLIN;
-        event.data.fd = _socket;
-        if (::epoll_ctl(epoll_fd, EPOLL_CTL_ADD, _socket, &event)) {
-            spdlog::error("epoll_ctl failed: {}", ::strerror(errno));
-            ::close(epoll_fd);
-            return;
-        }
-
-        while (1) {
-            struct epoll_event rx_event;
-            int count = ::epoll_wait(epoll_fd, &rx_event, 1, 100);
-            if (count > 0) {
-                readSocket();
-            }
-            if (_socket == -1) {
-                // socket was closed while we were waiting
-                break;
-            }
-        }
-
-        if (::close(epoll_fd)) {
-            spdlog::error("epoll close failed: {}", strerror(errno));
-        }
-    });
+    Application::instance().addFile(_socket, EventDispatcher::FileOperation::Read,
+                                    std::bind(&SocketCanBackend::readSocket, this));
 
     return true;
 }
@@ -343,7 +315,6 @@ bool SocketCanBackend::close()
     setState(CanInterface::DisconnectedState);
     return false;
 }
-
 
 void SocketCanBackend::readSocket()
 {
@@ -377,7 +348,7 @@ void SocketCanBackend::readSocket()
             ts = {};
         }
 
-        const CanFrame::Timestamp timestamp(ts.tv_sec, 1000*ts.tv_usec);
+        const CanFrame::Timestamp timestamp(ts.tv_sec, 1000 * ts.tv_usec);
         CanFrame frame;
         frame.setTimestamp(timestamp);
         frame.setFD(bytesRx == CANFD_MTU);
@@ -400,7 +371,8 @@ void SocketCanBackend::readSocket()
 
         std::basic_string_view<uint8_t> sview(_raw_frame.data, _raw_frame.len);
         std::vector<std::byte> data;
-        std::transform(sview.cbegin(), sview.cend(), std::back_inserter(data), [](unsigned char c) { return std::byte(c); });
+        std::transform(sview.cbegin(), sview.cend(), std::back_inserter(data),
+                       [](unsigned char c) { return std::byte(c); });
         frame.setPayload(data);
 
         frames.push_back(std::move(frame));

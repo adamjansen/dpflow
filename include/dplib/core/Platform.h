@@ -20,7 +20,10 @@
 
 #include <memory>
 
-#include "dplib/event_loop.h"
+namespace datapanel
+{
+namespace core
+{
 
 class Application;
 
@@ -40,28 +43,37 @@ class Platform
      *
      * @return true on success, or false if initialization failed
      */
-    virtual bool appStart(int argc, char **argv) = 0;
+    virtual bool appStart() = 0;
 
     /**
      * @brief Subclasses should override this for shutdown
      */
     virtual void appStop() = 0;
 
-    /**
-     * @brief Get the default Event Loop for the platform
-     */
-    std::shared_ptr<EventLoop> getEventLoop() const
+    virtual void processEvents() = 0;
+
+    int addTimer(int periodMs, EventDispatcher::TimerFunc f)
     {
-        return m_eventLoop;
+        return m_eventDispatcher.addTimer(periodMs, f);
+    }
+    bool removeTimer(int id)
+    {
+        return m_eventDispatcher.removeTimer(id);
+    }
+
+    bool addFile(int fd, EventDispatcher::FileOperation op, EventDispatcher::FileFunc f)
+    {
+        return m_eventDispatcher.addFile(fd, op, f);
+    }
+    bool removeFile(int fd, EventDispatcher::FileOperation op)
+    {
+        return m_eventDispatcher.removeFile(fd, op);
     }
 
   protected:
-    std::shared_ptr<EventLoop> m_eventLoop = nullptr;
+    EventDispatcher m_eventDispatcher;
 };
+std::unique_ptr<Platform> createPlatform();
 
-/**
- * @brief Construct a platform for the given application
- *
- * @param[in] app Running application
- */
-std::unique_ptr<Platform> createPlatform(Application &app);
+}  // namespace core
+}  // namespace datapanel
